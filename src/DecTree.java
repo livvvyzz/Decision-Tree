@@ -18,18 +18,26 @@ public class DecTree {
 			numEachCat[i.getCategory()] += 1;
 		}
 		// calculate entropy of target E(T)
-		entropy(numEachCat);
+		double target = entropy(numEachCat, allInstances.size());
 		// calculate entropy off cat+each attribute E(T,X)
+		double gain = 0;
+		double max = -10;
+		int attNum = 0;
 		for (int i = 0; i < numAtts; i++) {
 			double[][] table = new double[numCategories][2];
 			for (Instance j : allInstances) {
 				boolean bool = j.getAtt(i);
 				if (bool) {
-					table[j.getCategory()][1] += 1;
+					table[j.getCategory()][0] += 1;
 				} else
-					table[j.getCategory()][2] += 1;
+					table[j.getCategory()][1] += 1;
 			}
-			double ent = entropy(table);
+			System.out.println(attNames.get(i));
+			gain = target - entropy(table);
+			if (gain > max) {
+				max = gain;
+				attNum = i;
+			}
 		}
 	}
 
@@ -81,10 +89,10 @@ public class DecTree {
 	 * @param cat
 	 * @return the entropy
 	 */
-	public double entropy(double[] att) {
+	public double entropy(double[] att, double n) {
 		double ent = 0;
 		for (int i = 0; i < att.length; i++) {
-			double prob = att[i] / allInstances.size();
+			double prob = att[i] / n;
 			System.out.println(att[i] + "   " + allInstances.size() + "   " + prob);
 			ent = ent - prob * (Math.log(prob) / Math.log(2));
 			System.out.println(att[i] + "   " + ent);
@@ -92,24 +100,37 @@ public class DecTree {
 		return ent;
 	}
 
+	/**
+	 * Calculates the entropy of two attributes
+	 * 
+	 * @param table
+	 *            2d array of both attributes
+	 * @return entropy
+	 */
 	public double entropy(double[][] table) {
 		// get the total of each sub categoriy of the attribute
 		double t = 0;
 		double f = 0;
 		for (int i = 0; i < numCategories; i++) {
-			t += table[i][1];
-			f += table[i][2];
+			t += table[i][0];
+			f += table[i][1];
 		}
 		// calculate entropy
+		double entropyTrue = 0;
+		double entropyFalse = 0;
 		for (int j = 0; j < 2; j++) {
 			double[] cat = new double[numCategories];
 			for (int i = 0; i < numCategories; i++) {
 				cat[i] = table[i][j];
 			}
-			
+			if (j == 0)
+				entropyTrue = entropy(cat, t);
+			else
+				entropyFalse = entropy(cat, f);
 		}
-		double entropy = (t / allInstances.size()) * entropy();
-		return 0;
+		double entropy = ((t / allInstances.size()) * entropyTrue) + ((f / allInstances.size()) * entropyFalse);
+		System.out.println(entropy);
+		return entropy;
 	}
 
 }
