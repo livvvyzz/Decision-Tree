@@ -12,41 +12,19 @@ public class DecTree {
 	public DecTree(String fname) {
 		// create instance
 		readDataFile(fname);
-		// find how many instances there are of each category
-		double[] numEachCat = new double[numCategories];
-		for (Instance i : allInstances) {
-			numEachCat[i.getCategory()] += 1;
-		}
-		// calculate entropy of target E(T)
-		double target = entropy(numEachCat, allInstances.size());
-		// calculate entropy off cat+each attribute E(T,X)
-		double gain = 0;
-		double max = -10;
-		int attNum = 0;
-		for (int i = 0; i < numAtts; i++) {
-			double[][] table = new double[numCategories][2];
-			for (Instance j : allInstances) {
-				boolean bool = j.getAtt(i);
-				if (bool) {
-					table[j.getCategory()][0] += 1;
-				} else
-					table[j.getCategory()][1] += 1;
-			}
-			System.out.println(attNames.get(i));
-			gain = target - entropy(table);
-			if (gain > max) {
-				max = gain;
-				attNum = i;
-			}
-		}
+		
 	}
 
-	public Node BuildTree(Set<Instance> inst, List<String> attr) {
+	public Node BuildTree(List<Instance> inst, List<String> attr) {
+		int attNum = 0;
+		List<Instance> bestTrue = new ArrayList<Instance>();
+		List<Instance> bestFalse = new ArrayList<Instance>();
+		
 		if (inst.isEmpty()) {
 			// return name and probability of most probable class
 		} else if (instancesPure(inst)) {
 			// return leaf node of class and prob 1
-			String name = categoryNames.get(inst.iterator().next().getCategory());
+			String name = categoryNames.get(inst.get(0).getCategory());
 			return new LeafNode(name, 1);
 
 		} else if (attr.isEmpty()) {
@@ -70,10 +48,46 @@ public class DecTree {
 		}
 		// find best attribute
 		else {
+			// find how many instances there are of each category
+			double[] numEachCat = new double[numCategories];
+			for (Instance i : inst) {
+				numEachCat[i.getCategory()] += 1;
+			}
+			// calculate entropy of target E(T)
+			double target = entropy(numEachCat, inst.size());
+			// calculate entropy off cat+each attribute E(T,X)
+			double gain = 0;
+			double max = -10;
+
+			for (int i = 0; i < attr.size(); i++) {
+				double[][] table = new double[numCategories][2];
+				for (Instance j : inst) {
+					boolean bool = j.getAtt(i); ////////////////////////////////////////////////would need to fix
+					if (bool) {
+						table[j.getCategory()][0] += 1;
+					} else
+						table[j.getCategory()][1] += 1;
+				}
+				System.out.println(attNames.get(i));
+				gain = target - entropy(table);
+				if (gain > max) {
+					max = gain;
+					attNum = i;
+				}
+			}
+			//get lists for the best attr of instances that are true/false
+			for(Instance i : inst){
+				if(i.getAtt(attNum)) bestTrue.add(i);
+				else bestFalse.add(i);
+			}
 			
 		}
+		//build subtree using remaining atributes
+		String name = attr.remove(attNum);
+		Node left = BuildTree(bestTrue, attr);
+		Node right = BuildTree(bestFalse, attr);
+		return new InnerNode(name, left, right);
 
-		return null;
 	}
 
 	private void readDataFile(String fname) {
@@ -174,7 +188,7 @@ public class DecTree {
 	 * 
 	 * @param instances
 	 */
-	public boolean instancesPure(Set<Instance> instances) {
+	public boolean instancesPure(List<Instance> instances) {
 		int cat = 0;
 		int i = 0;
 		for (Instance n : instances) {
@@ -188,5 +202,6 @@ public class DecTree {
 		}
 		return true;
 	}
+
 
 }

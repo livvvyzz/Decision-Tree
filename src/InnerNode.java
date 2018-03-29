@@ -1,20 +1,15 @@
 
 public class InnerNode implements Node{
 	
-	private String name;
-	private double prob;
+	private String attr;
+	private Node left;
+	private Node right;
 	
-	public InnerNode(String name, double prob){
-		this.name = name;
-		this.prob = prob;
+	public InnerNode(String attr, Node left, Node right){
+		this.attr = attr;
+		this.left = left;
+		this.right = right;
 	}
 	
-	public String getName(){
-		return name;
-	}
-	
-	public double getProb(){
-		return prob;
-	}
 
 }
