@@ -41,6 +41,41 @@ public class DecTree {
 		}
 	}
 
+	public Node BuildTree(Set<Instance> inst, List<String> attr) {
+		if (inst.isEmpty()) {
+			// return name and probability of most probable class
+		} else if (instancesPure(inst)) {
+			// return leaf node of class and prob 1
+			String name = categoryNames.get(inst.iterator().next().getCategory());
+			return new LeafNode(name, 1);
+
+		} else if (attr.isEmpty()) {
+			// get majority name and prob
+			int[] numPerCat = new int[numCategories];
+			for (Instance i : inst) {
+				numPerCat[i.getCategory()] += 1;
+			}
+			// get majority
+			int max = -1;
+			int maxIndex = -1;
+			for (int i = 0; i < numPerCat.length; i++) {
+				if (numPerCat[i] > max) {
+					maxIndex = i;
+					max = numPerCat[i];
+				}
+			}
+			String name = categoryNames.get(maxIndex);
+			double prob = max / inst.size();
+			return new LeafNode(name, prob);
+		}
+		// find best attribute
+		else {
+			
+		}
+
+		return null;
+	}
+
 	private void readDataFile(String fname) {
 		/*
 		 * format of names file: names of categories, separated by spaces names
@@ -131,6 +166,27 @@ public class DecTree {
 		double entropy = ((t / allInstances.size()) * entropyTrue) + ((f / allInstances.size()) * entropyFalse);
 		System.out.println(entropy);
 		return entropy;
+	}
+
+	/**
+	 * takes a set of isntacnes and returns true if they are pure (all of the
+	 * same class)
+	 * 
+	 * @param instances
+	 */
+	public boolean instancesPure(Set<Instance> instances) {
+		int cat = 0;
+		int i = 0;
+		for (Instance n : instances) {
+			if (i == 0)
+				cat = n.getCategory();
+			else {
+				if (cat != n.getCategory())
+					return false;
+			}
+			i++;
+		}
+		return true;
 	}
 
 }
