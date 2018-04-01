@@ -8,20 +8,26 @@ public class DecTree {
 	private List<String> categoryNames;
 	private List<String> attNames;
 	private List<Instance> allInstances;
+	private Node root;
 
-	public DecTree(String fname) {
+	public DecTree(String fname, String test) {
 		// create instance
 		readDataFile(fname);
-		
+		root = BuildTree(allInstances, attNames);
+		//root.report("");
+		readDataFile(test);
+
 	}
 
 	public Node BuildTree(List<Instance> inst, List<String> attr) {
 		int attNum = 0;
+		int attrNum = 0;
 		List<Instance> bestTrue = new ArrayList<Instance>();
 		List<Instance> bestFalse = new ArrayList<Instance>();
-		
+
 		if (inst.isEmpty()) {
 			// return name and probability of most probable class
+			return baseLinePredictor();
 		} else if (instancesPure(inst)) {
 			// return leaf node of class and prob 1
 			String name = categoryNames.get(inst.get(0).getCategory());
@@ -43,7 +49,7 @@ public class DecTree {
 				}
 			}
 			String name = categoryNames.get(maxIndex);
-			double prob = max / inst.size();
+			double prob = (double)max / inst.size();
 			return new LeafNode(name, prob);
 		}
 		// find best attribute
@@ -61,32 +67,39 @@ public class DecTree {
 
 			for (int i = 0; i < attr.size(); i++) {
 				double[][] table = new double[numCategories][2];
+				int index = getAttributeIndex(attr, i);
+
 				for (Instance j : inst) {
-					boolean bool = j.getAtt(i); ////////////////////////////////////////////////would need to fix
+					boolean bool = j.getAtt(index); //////////////////////////////////////////////// would
+					//////////////////////////////////////////////// need
+					//////////////////////////////////////////////// to
+					//////////////////////////////////////////////// fix
 					if (bool) {
 						table[j.getCategory()][0] += 1;
 					} else
 						table[j.getCategory()][1] += 1;
 				}
-				System.out.println(attNames.get(i));
 				gain = target - entropy(table);
 				if (gain > max) {
 					max = gain;
-					attNum = i;
+					attNum = index;
+					attrNum = i;
 				}
 			}
-			//get lists for the best attr of instances that are true/false
-			for(Instance i : inst){
-				if(i.getAtt(attNum)) bestTrue.add(i);
-				else bestFalse.add(i);
+			// get lists for the best attr of instances that are true/false
+			for (Instance i : inst) {
+				if (i.getAtt(attNum))
+					bestTrue.add(i);
+				else
+					bestFalse.add(i);
 			}
-			
+			// build subtree using remaining atributes
+			String name = attr.remove(attrNum);
+			Node left = BuildTree(bestTrue, attr);
+			Node right = BuildTree(bestFalse, attr);
+			return new InnerNode(name, left, right);
+
 		}
-		//build subtree using remaining atributes
-		String name = attr.remove(attNum);
-		Node left = BuildTree(bestTrue, attr);
-		Node right = BuildTree(bestFalse, attr);
-		return new InnerNode(name, left, right);
 
 	}
 
@@ -142,9 +155,7 @@ public class DecTree {
 		double ent = 0;
 		for (int i = 0; i < att.length; i++) {
 			double prob = att[i] / n;
-			System.out.println(att[i] + "   " + allInstances.size() + "   " + prob);
 			ent = ent - prob * (Math.log(prob) / Math.log(2));
-			System.out.println(att[i] + "   " + ent);
 		}
 		return ent;
 	}
@@ -178,7 +189,6 @@ public class DecTree {
 				entropyFalse = entropy(cat, f);
 		}
 		double entropy = ((t / allInstances.size()) * entropyTrue) + ((f / allInstances.size()) * entropyFalse);
-		System.out.println(entropy);
 		return entropy;
 	}
 
@@ -203,5 +213,56 @@ public class DecTree {
 		return true;
 	}
 
+	public int getAttributeIndex(List<String> attr, int c) {
+		for (int i = 0; i < attNames.size(); i++) {
+			if (attNames.get(i).equals(attr.get(c))) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+	
+	public Node baseLinePredictor(){
+		int [] array = new int[numCategories];
+		for(Instance i : allInstances){
+			array[i.getCategory()]++;
+		}
+		int max = -1;
+		int index = -1;
+		for(int i = 0; i < array.length; i++){
+			if(array[i] > max) {
+				index = i;
+				max = array[i];
+			}
+		}
+		double prob = (double) max/allInstances.size();
+
+		return new LeafNode(categoryNames.get(index),prob);
+	}
+	
+	public double test(){
+		double num = 0; //number of isntances that are classified successfully
+		for(Instance i : allInstances){
+			String className = classify(i, root);
+			if(categoryNames.get(i.getCategory()).equals(className)) num++;
+		}
+		
+		double prob = num/allInstances.size();
+		return prob;
+	}
+	
+	public String classify(Instance i, Node n){
+		
+		if(n instanceof LeafNode){
+			return ((LeafNode) n).getName();
+		}
+		else {
+			if(i.getAtt(attNames.indexOf(((InnerNode) n).getAttr()))){
+				return classify(i, ((InnerNode) n).getLeft());
+			}
+			else return classify(i, ((InnerNode) n).getRight());
+		}
+	}
 
 }
