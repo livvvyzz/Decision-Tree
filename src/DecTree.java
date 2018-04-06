@@ -14,7 +14,7 @@ public class DecTree {
 		// create instance
 		readDataFile(fname);
 		root = BuildTree(allInstances, attNames);
-		//root.report("");
+		// root.report("");
 		readDataFile(test);
 
 	}
@@ -49,7 +49,7 @@ public class DecTree {
 				}
 			}
 			String name = categoryNames.get(maxIndex);
-			double prob = (double)max / inst.size();
+			double prob = (double) max / inst.size();
 			return new LeafNode(name, prob);
 		}
 		// find best attribute
@@ -222,46 +222,62 @@ public class DecTree {
 
 		return -1;
 	}
-	
-	public Node baseLinePredictor(){
-		int [] array = new int[numCategories];
-		for(Instance i : allInstances){
+
+	public Node baseLinePredictor() {
+		int[] array = new int[numCategories];
+		for (Instance i : allInstances) {
 			array[i.getCategory()]++;
 		}
 		int max = -1;
 		int index = -1;
-		for(int i = 0; i < array.length; i++){
-			if(array[i] > max) {
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] > max) {
 				index = i;
 				max = array[i];
 			}
 		}
-		double prob = (double) max/allInstances.size();
+		double prob = (double) max / allInstances.size();
 
-		return new LeafNode(categoryNames.get(index),prob);
+		return new LeafNode(categoryNames.get(index), prob);
 	}
-	
-	public double test(){
-		double num = 0; //number of isntances that are classified successfully
-		for(Instance i : allInstances){
+
+	public double test() {
+		double num = 0; // number of isntances that are classified successfully
+		double classACorrect = 0;
+		double classBCorrect = 0;
+		double classATotal = 0;
+		double classBTotal = 0;
+		for (Instance i : allInstances) {
 			String className = classify(i, root);
-			if(categoryNames.get(i.getCategory()).equals(className)) num++;
+			if (categoryNames.get(i.getCategory()).equals(className))
+				num++;
+
+			// check for each class for many correct
+			if (i.getCategory() == 0) {
+				classATotal++;
+				if (categoryNames.get(i.getCategory()).equals(className))
+					classACorrect++;
+			} else if (i.getCategory() == 1) {
+				classBTotal++;
+				if (categoryNames.get(i.getCategory()).equals(className))
+					classBCorrect++;
+			}
 		}
-		
-		double prob = num/allInstances.size();
+		System.out.println(categoryNames.get(0) + ": " + classACorrect + " out of " + classATotal);
+		System.out.println(categoryNames.get(1) + ": " + classBCorrect + " out of " + classBTotal);
+		double prob = num / allInstances.size();
 		return prob;
 	}
-	
-	public String classify(Instance i, Node n){
-		
-		if(n instanceof LeafNode){
+
+	public String classify(Instance i, Node n) {
+
+		if (n instanceof LeafNode) {
 			return ((LeafNode) n).getName();
-		}
-		else {
-			if(i.getAtt(attNames.indexOf(((InnerNode) n).getAttr()))){
+		} else {
+			if (i.getAtt(attNames.indexOf(((InnerNode) n).getAttr()))) {
 				return classify(i, ((InnerNode) n).getLeft());
-			}
-			else return classify(i, ((InnerNode) n).getRight());
+			} else
+				return classify(i, ((InnerNode) n).getRight());
 		}
 	}
 

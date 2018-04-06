@@ -4,6 +4,13 @@ public class Main {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		double prob = 0;
+		
+		String training = "hepatitis-training.dat";
+		String test = "hepatitis-test.dat";
+		DecTree dt = new DecTree(training, test);
+		double subProb = dt.test();
+		prob = prob + subProb;
+		/*
 		for(int i = 1; i < 10; i++){
 			String training = "hepatitis-training-run0" + i +".dat";
 			String test = "hepatitis-test-run0" + i +".dat";
@@ -12,9 +19,10 @@ public class Main {
 			System.out.println(i + "  " + subProb);
 			prob = prob + subProb;
 			
-		}
-		double avgProb = prob/9;
-		System.out.println(avgProb);
+		} */
+		//double avgProb = prob/9;
+		//System.out.println(avgProb);
+		System.out.println(prob);
 	}
 
 }
