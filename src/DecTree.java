@@ -213,6 +213,12 @@ public class DecTree {
 		return true;
 	}
 
+	/**
+	 * Returns the index of the char in attribute list
+	 * @param attr
+	 * @param c
+	 * @return index, or -1 if not in list
+	 */
 	public int getAttributeIndex(List<String> attr, int c) {
 		for (int i = 0; i < attNames.size(); i++) {
 			if (attNames.get(i).equals(attr.get(c))) {
@@ -223,6 +229,10 @@ public class DecTree {
 		return -1;
 	}
 
+	/**
+	 * finds the baseline prediction
+	 * @return baseline predictor
+	 */
 	public Node baseLinePredictor() {
 		int[] array = new int[numCategories];
 		for (Instance i : allInstances) {
@@ -241,6 +251,10 @@ public class DecTree {
 		return new LeafNode(categoryNames.get(index), prob);
 	}
 
+	/**
+	 * Finds the number of instances that are classified correctly
+	 * @return
+	 */
 	public double test() {
 		double num = 0; // number of isntances that are classified successfully
 		double classACorrect = 0;
@@ -269,6 +283,12 @@ public class DecTree {
 		return prob;
 	}
 
+	/**
+	 * Classifies an instance
+	 * @param i
+	 * @param n
+	 * @return
+	 */
 	public String classify(Instance i, Node n) {
 
 		if (n instanceof LeafNode) {
